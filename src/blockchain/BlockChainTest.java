@@ -1,14 +1,24 @@
 package blockchain;
 
-public class BlockChainTest {
-    public static void main(String[] args) {
-        BlockUtils blockUtils = new BlockUtils();
-        blockUtils.addBlock("100");
-        blockUtils.addBlock("200");
-        blockUtils.addBlock("300");
+import java.util.Random;
 
-        System.out.println(blockUtils.validateChain());
-        blockUtils.getBlockChain().get(2).setData("5000");
-        System.out.println(blockUtils.validateChain());
+public class BlockChainTest {
+    public static void main(String[] args) throws InterruptedException {
+
+        BlockUtils blockUtils = new BlockUtils();
+        Random random = new Random();
+        while (true) {
+            blockUtils.addBlock(String.valueOf(random.nextInt(5000)));
+            if (blockUtils.validateChain()) {
+                System.out.println("[INFO]: Blockchain still valid.");
+            } else {
+                System.out.println("[ERROR]: Blockchain not valid.");
+                return;
+            }
+            System.out.println("Number of blocks: " + blockUtils.getBlockChain().size());
+
+        }
+
+
     }
 }

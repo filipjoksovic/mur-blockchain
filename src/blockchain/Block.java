@@ -8,15 +8,17 @@ public class Block {
     private final Long timestamp;
     private String data;
     private final String previousHash;
-    private final String hash;
+    private String hash;
+
+    private Integer nonce;
 
     public Block(int index, String previousHash, String data) {
         this.index = index;
         this.timestamp = System.currentTimeMillis();
         this.data = data;
         this.previousHash = previousHash;
+        this.nonce = 0;
         this.hash = calculateHash();
-
     }
 
     public int getIndex() {
@@ -37,7 +39,7 @@ public class Block {
 
     public String calculateHash() {
 
-        String text = index + previousHash + timestamp + data;
+        String text = index + previousHash + timestamp + data + nonce;
 
 
         MessageDigest digest;
@@ -59,5 +61,30 @@ public class Block {
 
 
         return hexBuilder.toString();
+    }
+
+    public String getLeadingZeros(int diff) {
+        String s = "";
+        for (int i = 0; i < diff; i++) {
+            s += "0";
+        }
+        return s;
+    }
+
+    public void mineBlock(int difficulty) {
+        String leadingZeros = getLeadingZeros(difficulty);
+        while (!this.hash.substring(0, difficulty).equals(leadingZeros)) {
+            this.nonce++;
+
+            this.hash = calculateHash();
+        }
+//        System.out.println(this.hash);
+//        System.out.println("Block mined");
+
+//        return new Block()
+    }
+
+    public Long getTimestamp() {
+        return this.timestamp;
     }
 }

@@ -6,6 +6,10 @@ import java.util.List;
 public class BlockUtils {
 
     private List<Block> blockChain = new ArrayList<>();
+    private int difficulty = 3;
+    private int generationPeriod = 1000; //after interval, new block is expected
+    private int diffAdjustmentInterval = 10;// after n blocks, difficulty
+    // will change
 
     public List<Block> getBlockChain() {
         return blockChain;
@@ -28,8 +32,25 @@ public class BlockUtils {
 
     public void addBlock(String data) {
         Block previousBlock = this.getLatestBlock();
+
+
         Block newBlock = new Block(previousBlock.getIndex() + 1,
                 previousBlock.getHash(), data);
+        if (blockChain.size() >= diffAdjustmentInterval) {
+            Block previousAdjustmentBlock =
+                    blockChain.get(blockChain.size() - diffAdjustmentInterval);
+            Long timeExpected = (long) (generationPeriod * diffAdjustmentInterval);
+            Long timeTaken =
+                    previousBlock.getTimestamp() - previousAdjustmentBlock.getTimestamp();
+            System.out.println("[INFO]: Time taken for mining: " + timeTaken);
+            if (timeTaken < (timeExpected / 2)) {
+                System.out.println("[INFO]: Increasing difficulty: " + this.difficulty + " -> " + (++this.difficulty));
+
+            } else {
+                System.out.println("[INFO]: Decreasing difficulty: " + this.difficulty + " -> " + (--this.difficulty));
+            }
+        }
+        newBlock.mineBlock(this.difficulty);
         blockChain.add(newBlock);
     }
 
@@ -45,5 +66,21 @@ public class BlockUtils {
             }
         }
         return true;
+    }
+
+    public int getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(int difficulty) {
+        this.difficulty = difficulty;
+    }
+
+    public void setGenerationPeriod(int generationPeriod) {
+        this.generationPeriod = generationPeriod;
+    }
+
+    public int getGenerationPeriod() {
+        return generationPeriod;
     }
 }
