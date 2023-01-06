@@ -4,11 +4,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Block {
-    private int index;
-    private Long timestamp;
+    private final int index;
+    private final Long timestamp;
     private String data;
-    private String previousHash;
-    private String hash;
+    private final String previousHash;
+    private final String hash;
 
     public Block(int index, String previousHash, String data) {
         this.index = index;
@@ -23,22 +23,6 @@ public class Block {
         return index;
     }
 
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    public Long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getData() {
-        return data;
-    }
-
     public void setData(String data) {
         this.data = data;
     }
@@ -47,46 +31,22 @@ public class Block {
         return previousHash;
     }
 
-    public void setPreviousHash(String previousHash) {
-        this.previousHash = previousHash;
-    }
-
     public String getHash() {
         return hash;
     }
 
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    public Integer getDiff() {
-        return diff;
-    }
-
-    public void setDiff(Integer diff) {
-        this.diff = diff;
-    }
-
-    public Integer getNonce() {
-        return nonce;
-    }
-
-    public void setNonce(Integer nonce) {
-        this.nonce = nonce;
-    }
-
     public String calculateHash() {
 
-        String text = String.valueOf(index + previousHash + String.valueOf(timestamp) + String.valueOf(data));
+        String text = index + previousHash + timestamp + data;
 
 
-        MessageDigest digest = null;
+        MessageDigest digest;
         try {
             digest = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        final byte bytes[] = digest.digest(text.getBytes());
+        final byte[] bytes = digest.digest(text.getBytes());
 
         final StringBuilder hexBuilder = new StringBuilder();
         for (final byte b : bytes) {
