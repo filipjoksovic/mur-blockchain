@@ -1,57 +1,90 @@
 package client;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
+import console.ConsoleColor;
+import console.Level;
+import console.Logger;
+
+import java.io.*;
 import java.net.Socket;
 
 public class ClientSocketHandler implements Runnable {
 
     private final int serverPort;
     public Socket clientSocket;
-    DataOutputStream socketOutputStream;
+    ObjectOutputStream socketOutputStream;
+    ObjectInputStream socketInputStream;
     Thread clientThread;
+    Main appInstance;
+    private static final Logger logger = new Logger(ClientSocketHandler.class.getName());
 
-    public ClientSocketHandler(int serverPort) {
+    public ClientSocketHandler(int serverPort, Main appInstance) {
         this.serverPort = serverPort;
+        this.appInstance = appInstance;
 
     }
 
     public void start() {
-        if (clientThread != null) {
-            System.out.println("[ERROR]: Client thread already started");
+        logger.log("Attempting to start client socket");
+        if (clientSocket != null) {
+            logger.log(Level.ERROR, "Client socket is already initialized");
         } else {
-            System.out.println("[INFO]: Initializing client socket");
-            clientThread = new Thread(this, "Client thread");
-            clientThread.start();
-            System.out.println("[INFO]: Client socket initialized");
+            try {
+                clientSocket = new Socket("localhost", serverPort);
+                logger.log("Socket opened");
+
+            } catch (IOException e) {
+                logger.log("Error initializing client socket");
+                throw new RuntimeException(e);
+            }
+            try {
+                socketOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                logger.log("Streams initialized");
+
+            } catch (Exception e) {
+                logger.log("Error initializing input and output streams");
+            }
+
+            String toSend = "Hello server!!!";
+            try {
+                logger.log("Attempting to write to server");
+
+                socketOutputStream.writeObject(toSend);
+                logger.log("Write finished");
+
+            } catch (IOException e) {
+                logger.log(Level.CRITICAL, "Error sending output streams");
+
+                throw new RuntimeException(e);
+            }
+
+            try {
+                socketInputStream = new ObjectInputStream(clientSocket.getInputStream());
+                String response = (String) socketInputStream.readObject();
+                logger.log("Attempting to read response");
+
+            } catch (Exception e) {
+                logger.log(Level.CRITICAL, "Error reading response");
+            }
+
+            try {
+                logger.log("Attempting to close streams");
+
+                socketInputStream.close();
+                socketOutputStream.close();
+                clientSocket.close();
+                clientSocket = null;
+            } catch (Exception e) {
+                logger.log(Level.CRITICAL, "Error closing streams");
+            }
         }
     }
 
     @Override
     public void run() {
-        if (clientSocket == null) {
-            try {
-                System.out.println("[INFO]: Opening socket to port: " + serverPort);
-                clientSocket = new Socket("localhost", serverPort);
-                System.out.println("[INFO]: Socket opened");
-            } catch (IOException e) {
-                System.out.println("[CRITICAL]: Error starting socket on port: " + serverPort);
-                throw new RuntimeException(e);
-            }
-        }
-        try {
-            System.out.println("[INFO]: Sending message to server");
-            sendMessageToServer("Hello server!");
-            System.out.println("[INFO]: Message sent");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
     }
 
-    public void sendMessageToServer(String message) throws IOException {
-        socketOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-        socketOutputStream.writeUTF(message);
-        socketOutputStream.flush();
-        socketOutputStream.close();
+    public void sendMessageToServer(String message) throws IOException, ClassNotFoundException {
+
     }
 }

@@ -1,7 +1,10 @@
 package client;
 
-import java.io.DataInputStream;
-import java.io.IOException;
+import console.ConsoleColor;
+import console.Level;
+import console.Logger;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -9,10 +12,13 @@ public class ServerSocketHandler implements Runnable {
 
     Thread serverThread;
     ServerSocket serverSocket;
-    DataInputStream serverInputStream;
+    ObjectInputStream serverInputStream;
+    ObjectOutputStream serverOutputStream;
     int port;
 
     Main appInstance;
+
+    private static Logger logger = new Logger(ServerSocketHandler.class.getName());
 
     public ServerSocketHandler(int port, Main appInstance) {
         this.port = port;
@@ -23,42 +29,50 @@ public class ServerSocketHandler implements Runnable {
         while (true) {
             try {
                 serverSocket = new ServerSocket(port);
-                System.out.println("[INFO]: Server socket initialized on " +
-                        "port: " + port);
+                logger.log("Server socket initialized on port: " + port);
                 break;
             } catch (IOException e) {
-                System.out.println("[CRITICAL]: Port " + port + " is already in " +
-                        "use. Retrying with different port");
+                logger.log(Level.CRITICAL, "Port " + port + " is already in " + "use. Retrying with different port");
                 ++port;
             }
         }
 
-        System.out.println("[INFO]: Listening on port: " + port);
+        logger.log("Listening on port: " + port);
         appInstance.setTitle("Blockchain client:: " + port);
         appInstance.setServerSocketLabel();
 
         while (true) {
             try {
-                Socket clientSocket = this.serverSocket.accept();
-                serverInputStream = new DataInputStream(clientSocket.getInputStream());
-                String message = serverInputStream.readUTF();
-                System.out.println();
-                System.out.println("[INFO]: Server socket received message from client: " + message);
-                System.out.println();
+                logger.log("Waiting for connection");
+                Socket clientSocket = serverSocket.accept();
+                logger.log(Level.SUCCESS, "Client connected");
+                serverInputStream = new ObjectInputStream(clientSocket.getInputStream());
+                String message = (String) serverInputStream.readObject();
+                logger.log("Server socket received message from client: " + message);
+                appInstance.addTextToServerMessageTextArea(message);
+                serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                logger.log("Sending reponse");
+                serverOutputStream.writeObject("Sending response");
+                logger.log(Level.SUCCESS, "Response sent");
+                serverInputStream.close();
+                serverOutputStream.close();
+                clientSocket.close();
+
             } catch (Exception e) {
-                System.out.println("[INFO]: Client disconnected");
+                logger.log("Client disconnected");
+                break;
             }
         }
     }
 
     public void start() {
         if (serverThread == null) {
-            System.out.println("[INFO]: Starting server thread");
+            logger.log("Starting server thread");
             serverThread = new Thread(this, "Server thread");
             serverThread.start();
-            System.out.println("[SUCCESS]: Server thread started");
+            logger.log(Level.SUCCESS, "Server thread started");
         } else {
-            System.out.println("[ERROR]: Server thread already started");
+            logger.log(Level.ERROR, "Server thread already started");
         }
     }
 
