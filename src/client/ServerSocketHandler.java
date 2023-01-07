@@ -7,9 +7,13 @@ import console.Logger;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 public class ServerSocketHandler implements Runnable {
 
+    List<Thread> connections;
     Thread serverThread;
     ServerSocket serverSocket;
     ObjectInputStream serverInputStream;
@@ -23,6 +27,7 @@ public class ServerSocketHandler implements Runnable {
     public ServerSocketHandler(int port, Main appInstance) {
         this.port = port;
         this.appInstance = appInstance;
+        connections = new Vector<>();
     }
 
     public void serverSocketListen() throws IOException {
@@ -40,32 +45,12 @@ public class ServerSocketHandler implements Runnable {
         logger.log("Listening on port: " + port);
         appInstance.setTitle("Blockchain client:: " + port);
         appInstance.setServerSocketLabel();
-        Socket clientSocket = serverSocket.accept();
-        serverInputStream = new ObjectInputStream(clientSocket.getInputStream());
-        serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
         while (true) {
-            try {
-                logger.log("Waiting for connection");
-                logger.log(Level.SUCCESS, "Client connected");
-                String message = (String) serverInputStream.readObject();
-                if (message.equalsIgnoreCase("quit")) {
-                    clientSocket.close();
-                    serverOutputStream.close();
-                    serverInputStream.close();
-                    break;
-                }
-                logger.log("Server socket received message from client: " + message);
-                appInstance.addTextToServerMessageTextArea(message);
-                logger.log("Sending reponse");
-                serverOutputStream.writeObject("Sending response");
-                logger.log(Level.SUCCESS, "Response sent");
+            Socket clientSocket = serverSocket.accept();
+            Thread serverSocketListener = new ServerSocketListener(clientSocket, appInstance);
+            connections.add(serverSocketListener);
+            serverSocketListener.start();
 
-
-            } catch (Exception e) {
-                logger.log("Client disconnected");
-                e.printStackTrace();
-                break;
-            }
         }
     }
 
