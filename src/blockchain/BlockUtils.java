@@ -7,7 +7,8 @@ public class BlockUtils {
 
     private List<Block> blockChain = new ArrayList<>();
     private int difficulty = 3;
-    private int generationPeriod = 1000; //after interval, new block is expected
+    private int generationPeriod = 10000; //after interval, new block is
+    // expected
     private int diffAdjustmentInterval = 10;// after n blocks, difficulty
     // will change
 
@@ -36,18 +37,20 @@ public class BlockUtils {
 
         Block newBlock = new Block(previousBlock.getIndex() + 1,
                 previousBlock.getHash(), data);
-        if (blockChain.size() >= diffAdjustmentInterval) {
+        if (blockChain.size() % diffAdjustmentInterval == 0 && blockChain.size() >= diffAdjustmentInterval) {
             Block previousAdjustmentBlock =
                     blockChain.get(blockChain.size() - diffAdjustmentInterval);
-            Long timeExpected = (long) (generationPeriod * diffAdjustmentInterval);
+            Long timeExpected = (long) ((long) generationPeriod * diffAdjustmentInterval);
             Long timeTaken =
                     previousBlock.getTimestamp() - previousAdjustmentBlock.getTimestamp();
             System.out.println("[INFO]: Time taken for mining: " + timeTaken);
             if (timeTaken < (timeExpected / 2)) {
                 System.out.println("[INFO]: Increasing difficulty: " + this.difficulty + " -> " + (++this.difficulty));
 
-            } else {
+            } else if (timeTaken > (timeExpected * 2)) {
                 System.out.println("[INFO]: Decreasing difficulty: " + this.difficulty + " -> " + (--this.difficulty));
+            } else {
+                System.out.println("[INFO]: Keeping original difficulty: " + difficulty);
             }
         }
         newBlock.mineBlock(this.difficulty);
