@@ -40,26 +40,30 @@ public class ServerSocketHandler implements Runnable {
         logger.log("Listening on port: " + port);
         appInstance.setTitle("Blockchain client:: " + port);
         appInstance.setServerSocketLabel();
-
+        Socket clientSocket = serverSocket.accept();
+        serverInputStream = new ObjectInputStream(clientSocket.getInputStream());
+        serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
         while (true) {
             try {
                 logger.log("Waiting for connection");
-                Socket clientSocket = serverSocket.accept();
                 logger.log(Level.SUCCESS, "Client connected");
-                serverInputStream = new ObjectInputStream(clientSocket.getInputStream());
                 String message = (String) serverInputStream.readObject();
+                if (message.equalsIgnoreCase("quit")) {
+                    clientSocket.close();
+                    serverOutputStream.close();
+                    serverInputStream.close();
+                    break;
+                }
                 logger.log("Server socket received message from client: " + message);
                 appInstance.addTextToServerMessageTextArea(message);
-                serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
                 logger.log("Sending reponse");
                 serverOutputStream.writeObject("Sending response");
                 logger.log(Level.SUCCESS, "Response sent");
-                serverInputStream.close();
-                serverOutputStream.close();
-                clientSocket.close();
+
 
             } catch (Exception e) {
                 logger.log("Client disconnected");
+                e.printStackTrace();
                 break;
             }
         }

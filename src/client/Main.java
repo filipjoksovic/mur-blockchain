@@ -96,8 +96,13 @@ public class Main {
                     logger.log(Level.ERROR, "Client socket not started yet. Start client socket and then try again.");
                 } else {
                     logger.log("Sending message to server");
-                    clientSocketHandler.start();
-                    logger.log("Message sent to server");
+                    try {
+                        clientSocketHandler.sendMessageToServer(clientMessageInput.getText());
+                        logger.log("Message sent to server");
+
+                    } catch (IOException | ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
         });

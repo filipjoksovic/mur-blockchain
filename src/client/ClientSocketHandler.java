@@ -46,35 +46,10 @@ public class ClientSocketHandler implements Runnable {
 
             String toSend = "Hello server!!!";
             try {
-                logger.log("Attempting to write to server");
-
-                socketOutputStream.writeObject(toSend);
-                logger.log("Write finished");
-
-            } catch (IOException e) {
-                logger.log(Level.CRITICAL, "Error sending output streams");
-
+                sendMessageToServer(toSend);
+                logger.log(Level.SUCCESS, "Message send");
+            } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
-            }
-
-            try {
-                socketInputStream = new ObjectInputStream(clientSocket.getInputStream());
-                String response = (String) socketInputStream.readObject();
-                logger.log("Attempting to read response");
-
-            } catch (Exception e) {
-                logger.log(Level.CRITICAL, "Error reading response");
-            }
-
-            try {
-                logger.log("Attempting to close streams");
-
-                socketInputStream.close();
-                socketOutputStream.close();
-                clientSocket.close();
-                clientSocket = null;
-            } catch (Exception e) {
-                logger.log(Level.CRITICAL, "Error closing streams");
             }
         }
     }
@@ -85,6 +60,40 @@ public class ClientSocketHandler implements Runnable {
     }
 
     public void sendMessageToServer(String message) throws IOException, ClassNotFoundException {
+        try {
+            logger.log("Attempting to write to server");
 
+            socketOutputStream.writeObject(message);
+            logger.log("Write finished");
+
+        } catch (IOException e) {
+            logger.log(Level.CRITICAL, "Error sending output streams");
+
+            throw new RuntimeException(e);
+        }
+
+        try {
+            if (socketInputStream == null) {
+                socketInputStream = new ObjectInputStream(clientSocket.getInputStream());
+            }
+            String response = (String) socketInputStream.readObject();
+            logger.log("Attempting to read response");
+            logger.log(Level.SUCCESS, "Response received: " + response);
+
+        } catch (Exception e) {
+            logger.log(Level.CRITICAL, "Error reading response");
+            e.printStackTrace();
+        }
+
+        try {
+            logger.log("Attempting to close streams");
+
+//            socketInputStream.close();
+//            socketOutputStream.close();
+//            clientSocket.close();
+//            clientSocket = null;
+        } catch (Exception e) {
+            logger.log(Level.CRITICAL, "Error closing streams");
+        }
     }
 }
