@@ -19,6 +19,7 @@ public class ServerSocketHandler implements Runnable {
     ServerSocket serverSocket;
     ObjectInputStream serverInputStream;
     ObjectOutputStream serverOutputStream;
+    List<Integer> knownPorts;
     int port;
 
     Main appInstance;
@@ -30,6 +31,7 @@ public class ServerSocketHandler implements Runnable {
         this.appInstance = appInstance;
         connections = new Vector<>();
         availablePorts = new Vector<>();
+
     }
 
     public void serverSocketListen() throws IOException {
@@ -54,7 +56,9 @@ public class ServerSocketHandler implements Runnable {
             logger.log("Starting listener thread");
             ServerSocketListener serverSocketListener = new ServerSocketListener(clientSocket, appInstance, availablePorts);
             logger.log(Level.SUCCESS, "Listener thread connected");
+            connections.add(serverSocketListener);
             serverSocketListener.start();
+            System.out.println("Number of connnections: " + connections.size());
         }
     }
 

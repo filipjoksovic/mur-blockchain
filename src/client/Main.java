@@ -35,6 +35,7 @@ public class Main {
     JButton clientMessageSendButton;
 
     JTextArea serverMessagesTextArea;
+    JTextArea serverResponsesTextArea;
     private static Logger logger = new Logger(Main.class.getName());
 
     Main(int posX, int posY) {
@@ -129,6 +130,7 @@ public class Main {
 
                     clientSocketHandler = new ClientSocketHandler(9090, appInstance, serverSocketHandler.port);
                     clientSocketHandler.start();
+
                     logger.log(Level.DEBUG, "Server instance port: " + serverSocketHandler.port);
                 } else {
                     logger.log("Client socket is already initialized");
@@ -143,13 +145,9 @@ public class Main {
                     logger.log(Level.ERROR, "Client socket not started yet. Start client socket and then try again.");
                 } else {
                     logger.log("Sending message to server");
-                    try {
-                        clientSocketHandler.sendMessageToServer(clientMessageInput.getText());
-                        logger.log("Message sent to server");
+                    //clientSocketHandler.sendMessageToServer(clientMessageInput.getText());
+                    logger.log("Message sent to server");
 
-                    } catch (IOException | ClassNotFoundException ex) {
-                        throw new RuntimeException(ex);
-                    }
                 }
             }
         });
@@ -164,7 +162,9 @@ public class Main {
         clientMessageInput.setBounds(padding, clientSocketButton.getY() + clientSocketButton.getHeight() + padding, (int) (componentWidth * 0.7) - padding, componentHeight);
         clientMessageSendButton.setBounds(clientMessageInput.getX() + clientMessageInput.getWidth() + padding, clientSocketButton.getY() + clientSocketButton.getHeight() + padding, (int) (componentWidth * 0.3), componentHeight);
         serverMessagesTextArea.setBounds(padding, clientMessageInput.getY() + clientMessageInput.getHeight() + padding, componentWidth, componentHeight * 10);
-        portsAvailable.setBounds(padding, serverMessagesTextArea.getY() + serverMessagesTextArea.getHeight() + padding, componentWidth, componentHeight * 10);
+        serverResponsesTextArea.setBounds(padding, serverMessagesTextArea.getY() + serverMessagesTextArea.getHeight() + padding, componentWidth, componentHeight * 10);
+
+        portsAvailable.setBounds(padding, serverResponsesTextArea.getY() + serverResponsesTextArea.getHeight() + padding, componentWidth, componentHeight * 10);
     }
 
     public void addComponents() {
@@ -177,6 +177,7 @@ public class Main {
         frame.add(clientMessageSendButton);
         frame.add(serverMessagesTextArea);
         frame.add(portsAvailable);
+        frame.add(serverResponsesTextArea);
     }
 
     public void initComponents() {
@@ -191,6 +192,8 @@ public class Main {
         clientMessageSendButton = new JButton("Send message");
 
         serverMessagesTextArea = new JTextArea();
+        serverResponsesTextArea = new JTextArea();
+
     }
 
 }
