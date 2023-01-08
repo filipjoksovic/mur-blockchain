@@ -6,6 +6,7 @@ import console.Logger;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.UUID;
 
 public class ClientSocketHandler implements Runnable {
 
@@ -13,8 +14,10 @@ public class ClientSocketHandler implements Runnable {
     public Socket clientSocket;
     ObjectOutputStream socketOutputStream;
     ObjectInputStream socketInputStream;
-    Thread clientThread;
     Main appInstance;
+
+    UUID connection_id;
+
     private static final Logger logger = new Logger(ClientSocketHandler.class.getName());
 
     public ClientSocketHandler(int serverPort, Main appInstance) {
@@ -44,7 +47,7 @@ public class ClientSocketHandler implements Runnable {
                 logger.log("Error initializing input and output streams");
             }
 
-            String toSend = "Hello server!!!";
+            String toSend = String.valueOf(UUID.randomUUID());
             try {
                 sendMessageToServer(toSend);
                 logger.log(Level.SUCCESS, "Message send");

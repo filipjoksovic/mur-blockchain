@@ -47,9 +47,15 @@ public class ServerSocketHandler implements Runnable {
         appInstance.setServerSocketLabel();
         while (true) {
             Socket clientSocket = serverSocket.accept();
-            Thread serverSocketListener = new ServerSocketListener(clientSocket, appInstance);
+            logger.log("Starting listener thread");
+            ServerSocketListener serverSocketListener = new ServerSocketListener(clientSocket, appInstance);
+            logger.log(Level.SUCCESS, "Listener thread connected");
             connections.add(serverSocketListener);
+            appInstance.setNumberConnectionsLabel(connections.size());
             serverSocketListener.start();
+            synchronized (serverSocketListener) {
+                logger.log("Connection id for new connection" + serverSocketListener.getConnectionID());
+            }
 
         }
     }

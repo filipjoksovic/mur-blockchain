@@ -54,6 +54,7 @@ public class Main {
         clientSocketButton = new JButton("Start client socket");
         serverSocketStatus = new JLabel("Server socket status: Off");
         clientSocketStatus = new JLabel("Client socket status: OFF");
+        numConnections = new JLabel("To see the number of connections turn on server mode first");
 
         clientMessageInput = new JTextField();
         clientMessageSendButton = new JButton("Send message");
@@ -110,14 +111,16 @@ public class Main {
 
         serverSocketStatus.setBounds(padding, padding, componentWidth, componentHeight);
         clientSocketStatus.setBounds(padding, serverSocketStatus.getY() + serverSocketStatus.getHeight() + padding, componentWidth, componentHeight);
-        serverSocketButton.setBounds(padding, clientSocketStatus.getY() + clientSocketStatus.getHeight() + padding, componentWidth / 2 - padding, componentHeight);
-        clientSocketButton.setBounds(serverSocketButton.getX() + serverSocketButton.getWidth() + padding, clientSocketStatus.getY() + clientSocketStatus.getHeight() + padding, componentWidth / 2 - padding, componentHeight);
+        numConnections.setBounds(padding, clientSocketStatus.getY() + clientSocketStatus.getHeight() + padding, componentWidth, componentHeight);
+        serverSocketButton.setBounds(padding, numConnections.getY() + numConnections.getHeight() + padding, componentWidth / 2 - padding, componentHeight);
+        clientSocketButton.setBounds(serverSocketButton.getX() + serverSocketButton.getWidth() + padding, numConnections.getY() + numConnections.getHeight() + padding, componentWidth / 2 - padding, componentHeight);
         clientMessageInput.setBounds(padding, clientSocketButton.getY() + clientSocketButton.getHeight() + padding, (int) (componentWidth * 0.7) - padding, componentHeight);
         clientMessageSendButton.setBounds(clientMessageInput.getX() + clientMessageInput.getWidth() + padding, clientSocketButton.getY() + clientSocketButton.getHeight() + padding, (int) (componentWidth * 0.3), componentHeight);
         serverMessagesTextArea.setBounds(padding, clientMessageInput.getY() + clientMessageInput.getHeight() + padding, componentWidth, componentHeight * 10);
 
         frame.add(serverSocketStatus);
         frame.add(clientSocketStatus);
+        frame.add(numConnections);
         frame.add(serverSocketButton);
         frame.add(clientSocketButton);
         frame.add(clientMessageInput);
@@ -154,6 +157,10 @@ public class Main {
 
     public void addTextToServerMessageTextArea(String message) {
         this.serverMessagesTextArea.append(message + "\n");
+    }
+
+    public void setNumberConnectionsLabel(int num) {
+        numConnections.setText("Number of connections: " + num);
     }
 
 

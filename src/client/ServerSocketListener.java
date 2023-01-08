@@ -8,11 +8,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.UUID;
 
 public class ServerSocketListener extends Thread {
 
     protected Socket socket;
     protected Main appInstance;
+    protected String connection_id;
 
     public ServerSocketListener(Socket socket, Main appInstance) {
         this.socket = socket;
@@ -39,6 +41,9 @@ public class ServerSocketListener extends Thread {
                 logger.log("Waiting for connection");
                 logger.log(Level.SUCCESS, "Client connected");
                 String message = (String) serverInputStream.readObject();
+                if (connection_id == null) {
+                    connection_id = message;
+                }
                 if (message.equalsIgnoreCase("quit")) {
                     socket.close();
                     serverOutputStream.close();
@@ -58,5 +63,9 @@ public class ServerSocketListener extends Thread {
                 break;
             }
         }
+    }
+
+    public String getConnectionID() {
+        return this.connection_id;
     }
 }
