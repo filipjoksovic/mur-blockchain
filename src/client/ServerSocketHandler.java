@@ -13,7 +13,8 @@ import java.util.Vector;
 
 public class ServerSocketHandler implements Runnable {
 
-    List<Thread> connections;
+    List<ServerSocketListener> connections;
+    List<Integer> availablePorts;
     Thread serverThread;
     ServerSocket serverSocket;
     ObjectInputStream serverInputStream;
@@ -28,17 +29,20 @@ public class ServerSocketHandler implements Runnable {
         this.port = port;
         this.appInstance = appInstance;
         connections = new Vector<>();
+        availablePorts = new Vector<>();
     }
 
     public void serverSocketListen() throws IOException {
-        while (true) {
-            try {
-                serverSocket = new ServerSocket(port);
-                logger.log("Server socket initialized on port: " + port);
-                break;
-            } catch (IOException e) {
-                logger.log(Level.CRITICAL, "Port " + port + " is already in " + "use. Retrying with different port");
-                ++port;
+        synchronized (this) {
+            while (true) {
+                try {
+                    serverSocket = new ServerSocket(port);
+                    logger.log("Server socket initialized on port: " + port);
+                    break;
+                } catch (IOException e) {
+                    logger.log(Level.CRITICAL, "Port " + port + " is already in " + "use. Retrying with different port");
+                    ++port;
+                }
             }
         }
 
@@ -48,15 +52,9 @@ public class ServerSocketHandler implements Runnable {
         while (true) {
             Socket clientSocket = serverSocket.accept();
             logger.log("Starting listener thread");
-            ServerSocketListener serverSocketListener = new ServerSocketListener(clientSocket, appInstance);
+            ServerSocketListener serverSocketListener = new ServerSocketListener(clientSocket, appInstance, availablePorts);
             logger.log(Level.SUCCESS, "Listener thread connected");
-            connections.add(serverSocketListener);
-            appInstance.setNumberConnectionsLabel(connections.size());
             serverSocketListener.start();
-            synchronized (serverSocketListener) {
-                logger.log("Connection id for new connection" + serverSocketListener.getConnectionID());
-            }
-
         }
     }
 
@@ -77,6 +75,21 @@ public class ServerSocketHandler implements Runnable {
             this.serverSocketListen();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public String getPortsAsString() {
+        synchronized (this) {
+
+            StringBuilder s = new StringBuilder();
+            for (int i = 0; i < availablePorts.size(); i++) {
+                s.append(availablePorts.get(i));
+                if (i < availablePorts.size() - 1) {
+                    s.append("@");
+                }
+            }
+
+            return s.toString();
         }
     }
 }

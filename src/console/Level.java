@@ -4,5 +4,6 @@ public enum Level {
     INFO,
     ERROR,
     CRITICAL,
-    SUCCESS
+    SUCCESS,
+    DEBUG
 }
