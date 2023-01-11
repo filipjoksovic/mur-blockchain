@@ -11,36 +11,37 @@ public class BlockUtils {
     private int generationPeriod = 10000; //after interval, new block is
     // expected
     private int diffAdjustmentInterval = 10;// after n blocks, difficulty
+
     // will change
 
     public List<Block> getBlockChain() {
-        return blockChain;
+        return inMemBlockChain;
     }
 
     public void setBlockChain(List<Block> blockChain) {
-        this.blockChain = blockChain;
+        BlockUtils.blockChain = blockChain;
     }
 
     private void createGenesisBlock() {
-        blockChain.add(new Block(0, "0", "Hello world!"));
+        inMemBlockChain.add(new Block(0, "0", "Hello world!"));
     }
 
     private Block getLatestBlock() {
-        if (blockChain.isEmpty()) {
+        if (inMemBlockChain.isEmpty()) {
             createGenesisBlock();
         }
-        return blockChain.get(blockChain.size() - 1);
+        return inMemBlockChain.get(inMemBlockChain.size() - 1);
     }
 
     public Block addBlock(String data) {
         Block previousBlock = this.getLatestBlock();
-
+        this.difficulty = previousBlock.getDifficulty();
 
         Block newBlock = new Block(previousBlock.getIndex() + 1,
                 previousBlock.getHash(), data);
-        if (blockChain.size() % diffAdjustmentInterval == 0 && blockChain.size() >= diffAdjustmentInterval) {
+        if (inMemBlockChain.size() % diffAdjustmentInterval == 0 && inMemBlockChain.size() >= diffAdjustmentInterval) {
             Block previousAdjustmentBlock =
-                    blockChain.get(blockChain.size() - diffAdjustmentInterval);
+                    inMemBlockChain.get(inMemBlockChain.size() - diffAdjustmentInterval);
             Long timeExpected = (long) ((long) generationPeriod * diffAdjustmentInterval);
             Long timeTaken =
                     previousBlock.getTimestamp() - previousAdjustmentBlock.getTimestamp();
@@ -54,11 +55,12 @@ public class BlockUtils {
                 System.out.println("[INFO]: Keeping original difficulty: " + difficulty);
             }
         }
+        newBlock.setDifficulty(this.difficulty);
         newBlock.mineBlock(this.difficulty);
         if (newBlock.getTimestamp() <= (System.currentTimeMillis() - 60000) || newBlock.getTimestamp() >= previousBlock.getTimestamp() - 60000) {
-            System.out.println("BLOCK VALID BLOCK VALID BLOCK VALID");
             blockChain.add(newBlock);
-            System.out.println("Blockchain size: " + blockChain.size());
+            inMemBlockChain.add(newBlock);
+            System.out.println("Blockchain size: " + inMemBlockChain.size());
             return newBlock;
         } else {
             System.out.println("[INFO]:Block not valid");
@@ -67,9 +69,9 @@ public class BlockUtils {
     }
 
     public boolean validateChain() {
-        for (int i = 1; i < blockChain.size(); i++) {
-            Block current = blockChain.get(i);
-            Block previous = blockChain.get(i - 1);
+        for (int i = 1; i < inMemBlockChain.size(); i++) {
+            Block current = inMemBlockChain.get(i);
+            Block previous = inMemBlockChain.get(i - 1);
             if (!current.getHash().equals(current.calculateHash())) {
                 return false;
             }
@@ -94,10 +96,32 @@ public class BlockUtils {
         return true;
     }
 
+    public static boolean validateChain(List<Block> blockChain) {
+        for (int i = 1; i < blockChain.size(); i++) {
+            Block current = blockChain.get(i);
+            Block previous = blockChain.get(i - 1);
+            if (!current.getHash().equals(current.calculateHash())) {
+                return false;
+            }
+            if (!current.getPreviousHash().equals(previous.calculateHash())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public int calculateCumulativeDifficulty() {
         int sum = 0;
+        for (Block block : inMemBlockChain) {
+            sum += Math.pow(2, block.getDifficulty());
+        }
+        return sum;
+    }
+
+    public static int calculateCumulativeDifficulty(List<Block> blockChain) {
+        int sum = 0;
         for (Block block : blockChain) {
-            sum += Math.pow(2, difficulty);
+            sum += Math.pow(2, block.getDifficulty());
         }
         return sum;
     }
@@ -120,17 +144,42 @@ public class BlockUtils {
 
     public String serializeBlockchain() {
         StringBuilder serializedBC = new StringBuilder();
-        serializedBC.append(difficulty).append("??");
-        for (int i = 0; i < blockChain.size(); i++) {
-            serializedBC.append(BlockUtils.serializeBlock(blockChain.get(i), this.getDifficulty()));
-            if (i != blockChain.size() - 1) {
-                serializedBC.append("??");
+        for (int i = 0; i < inMemBlockChain.size(); i++) {
+            serializedBC.append(BlockUtils.serializeBlock(inMemBlockChain.get(i)));
+            if (i != inMemBlockChain.size() - 1) {
+                serializedBC.append("::");
             }
         }
         return serializedBC.toString();
     }
 
-    public static String serializeBlock(Block block, int difficulty) {
-        return block.getIndex() + "//" + block.getTimestamp() + "//" + block.getData() + "//" + block.getPreviousHash() + "//" + block.getHash() + "//" + block.getNonce() + "//" + difficulty;
+    public static String serializeBlockchain(List<Block> blockChain) {
+        StringBuilder serializedBC = new StringBuilder();
+        for (int i = 0; i < blockChain.size(); i++) {
+            serializedBC.append(BlockUtils.serializeBlock(blockChain.get(i)));
+            if (i != blockChain.size() - 1) {
+                serializedBC.append("::");
+            }
+        }
+        return serializedBC.toString();
+    }
+
+    public static List<Block> deserializeBlockchain(String message) {
+        String[] blockchain = message.split("::");
+        Vector<Block> ffs = new Vector<>();
+        for (String block : blockchain) {
+            Block newBlock = BlockUtils.deserializeBlock(block);
+            ffs.add(newBlock);
+        }
+//        int difficulty = Integer.parseInt(blockchainData[0]);
+        return ffs;
+    }
+
+    public static String serializeBlock(Block block) {
+        return block.getIndex() + "//" + block.getTimestamp() + "//" + block.getData() + "//" + block.getPreviousHash() + "//" + block.getHash() + "//" + block.getNonce() + "//" + block.getDifficulty();
+    }
+
+    public static Block deserializeBlock(String message) {
+        return new Block(message.split("//"));
     }
 }

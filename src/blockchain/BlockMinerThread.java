@@ -1,6 +1,8 @@
 package blockchain;
 
 import client.ClientSocketHandler;
+import console.Level;
+import console.Logger;
 
 import java.util.Random;
 
@@ -10,6 +12,7 @@ public class BlockMinerThread extends Thread {
     Random random;
 
     ClientSocketHandler csh;
+    private final static Logger logger = new Logger(BlockMinerThread.class.getName());
 
     public BlockMinerThread(ClientSocketHandler csh) {
         this();
@@ -26,14 +29,14 @@ public class BlockMinerThread extends Thread {
             while (true) {
                 Block minedBlock = blockUtils.addBlock(String.valueOf(random.nextInt(5000)));
                 if (blockUtils.validateChain()) {
-                    System.out.println("[INFO]: Blockchain still valid.");
-                    System.out.println("[INFO]: Cummulative difficulty: " + blockUtils.calculateCumulativeDifficulty());
+                    logger.log("Blockchain still valid.");
+                    logger.log("Cummulative difficulty: " + blockUtils.calculateCumulativeDifficulty());
                     csh.sendMessageToServers(blockUtils.serializeBlockchain());
                 } else {
-                    System.out.println("[ERROR]: Blockchain not valid.");
-                    return;
+                    logger.log(Level.ERROR, "Blockchain not valid.");
+//                    return;
                 }
-                System.out.println("[INFO] Number of blocks: " + blockUtils.getBlockChain().size());
+                logger.log("Number of blocks: " + blockUtils.getBlockChain().size());
             }
         }
     }

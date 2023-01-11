@@ -26,11 +26,15 @@ public class ServerSocketListener extends Thread {
 
     BlockUtils blockUtils;
 
+    List<Block> inMemoryCollectedBlockChain;
+
     public ServerSocketListener(Socket socket, Main appInstance, List<Integer> availablePorts, BlockUtils blockUtils) {
         this.socket = socket;
         this.appInstance = appInstance;
         this.availablePorts = availablePorts;
         this.blockUtils = blockUtils;
+        this.inMemoryCollectedBlockChain = new Vector<>();
+
     }
 
     private static final Logger logger = new Logger(ServerSocketListener.class.getName());
@@ -64,21 +68,24 @@ public class ServerSocketListener extends Thread {
                 logger.log("Server socket received message from client: " + message);
                 appInstance.addTextToServerMessageTextArea(message);
 
-                String[] possibleBlock = message.split("//");
-                if (possibleBlock.length == 7) {
-                    Block newBlock = new Block(possibleBlock);
-                    logger.log(Level.IDIOT, "New block found");
-                    BlockUtils.inMemBlockChain.add(newBlock);
-                    if (blockUtils.validateInMemChain()) {
-                        logger.log(Level.SUCCESS, "Blockchain still valid somehow");
+                String[] possibleBlockchain = message.split("::");
+                if (possibleBlockchain.length > 1) {
+                    inMemoryCollectedBlockChain = BlockUtils.deserializeBlockchain(message);
+                    if (BlockUtils.calculateCumulativeDifficulty(inMemoryCollectedBlockChain) > BlockUtils.calculateCumulativeDifficulty(BlockUtils.inMemBlockChain)) {
+                        logger.log(Level.CRITICAL, "Validating collected block: " + BlockUtils.validateChain(inMemoryCollectedBlockChain));
+                        logger.log(Level.DEBUG, String.valueOf(BlockUtils.calculateCumulativeDifficulty(BlockUtils.inMemBlockChain)));
+                        logger.log(Level.IDIOT, "Blockchain should replaced with one from network");
+                        BlockUtils.inMemBlockChain = inMemoryCollectedBlockChain;
+                        blockUtils.setDifficulty(inMemoryCollectedBlockChain.get(inMemoryCollectedBlockChain.size() - 1).getDifficulty());
                     } else {
-                        logger.log(Level.CRITICAL, "Blockchain not valid");
-                        break;
+                        logger.log("Blockchain should stay the same");
                     }
+
+                    logger.log(Level.SUCCESS, "Received blockchain");
                 }
 
-                serverOutputStream.writeObject(getPortsAsString());
-                logger.log(Level.SUCCESS, "Response sent");
+                serverOutputStream.writeObject(BlockUtils.serializeBlockchain(BlockUtils.inMemBlockChain));
+                logger.log(Level.SUCCESS, "Sending back blockchain: " + BlockUtils.serializeBlockchain(BlockUtils.inMemBlockChain));
 
             } catch (Exception e) {
                 logger.log("Client disconnected");

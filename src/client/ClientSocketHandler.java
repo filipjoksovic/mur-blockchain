@@ -45,7 +45,7 @@ public class ClientSocketHandler {
         for (Integer knownPort : knownPorts) {
             try {
                 logger.log("Attempting to connect to " + knownPort);
-                ClientSocketListener clientSocketListener = new ClientSocketListener(knownPort, appInstance, instancePort);
+                ClientSocketListener clientSocketListener = new ClientSocketListener(knownPort, appInstance, instancePort, blockUtils);
                 logger.log("Client socket listener thread started for port: " + knownPort);
                 availableConnections.add(clientSocketListener);
                 clientSocketListener.start();

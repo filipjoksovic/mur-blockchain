@@ -26,12 +26,13 @@ public class ClientSocketListener extends Thread {
     private static final Logger logger = new Logger(ClientSocketListener.class.getName());
     BlockUtils blockUtilsInstance;
 
-    public ClientSocketListener(int port, Main appInstance, int parentPort) throws IOException {
+    public ClientSocketListener(int port, Main appInstance, int parentPort, BlockUtils blockUtils) throws IOException {
         connectionID = UUID.randomUUID();
         this.socket = new Socket("localhost", port);
         this.port = port;
         this.parentPort = parentPort;
         this.appInstance = appInstance;
+        this.blockUtilsInstance = blockUtils;
 
         logger.log(Level.IDIOT, "Creating new socket/connection");
 
@@ -68,23 +69,6 @@ public class ClientSocketListener extends Thread {
             logger.log("Message received");
             appInstance.serverResponsesTextArea.append(response + "\n");
             String[] blockData = response.split("//");
-            String[] possiblePortData = response.split("@");
-            if (possiblePortData.length > 0) {
-                int counter = 0;
-                StringBuilder availablePortsLabelText = new StringBuilder();
-                logger.log(Level.SUCCESS, "PORT NUMBERS RECEIVED");
-                for (String possiblePort : possiblePortData) {
-                    logger.log(Level.CRITICAL, "Port: " + possiblePort);
-                    availablePortsLabelText.append(possiblePort);
-                    if (counter % 2 == 0) {
-                        availablePortsLabelText.append(" \t ");
-                    } else {
-                        availablePortsLabelText.append(" \n ");
-                    }
-                    counter++;
-                }
-                appInstance.setPossiblePortsLabel("Available ports: \n" + availablePortsLabelText.toString());
-            }
 
 
             logger.log("Attempting to read response");

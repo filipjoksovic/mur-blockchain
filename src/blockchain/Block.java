@@ -2,6 +2,7 @@ package blockchain;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 
 public class Block {
     private final int index;
@@ -12,7 +13,7 @@ public class Block {
 
     private Integer nonce;
 
-    private Integer difficulty;
+    private Integer difficulty = 3;
 
     public Block(int index, String previousHash, String data) {
         this.index = index;
@@ -99,7 +100,15 @@ public class Block {
         this.nonce = nonce;
     }
 
-    public void mineBlock(int difficulty) {
+    public Integer getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(Integer difficulty) {
+        this.difficulty = difficulty;
+    }
+
+    public synchronized void mineBlock(int difficulty) {
         String leadingZeros = getLeadingZeros(difficulty);
         while (!this.hash.substring(0, difficulty).equals(leadingZeros)) {
             this.nonce++;
@@ -114,5 +123,18 @@ public class Block {
 
     public Long getTimestamp() {
         return this.timestamp;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Block block = (Block) o;
+        return index == block.index && timestamp.equals(block.timestamp) && data.equals(block.data) && previousHash.equals(block.previousHash) && hash.equals(block.hash) && nonce.equals(block.nonce) && difficulty.equals(block.difficulty);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, timestamp, data, previousHash, hash, nonce, difficulty);
     }
 }
