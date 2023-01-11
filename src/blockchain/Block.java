@@ -21,6 +21,15 @@ public class Block {
         this.hash = calculateHash();
     }
 
+    public Block(String[] data) {
+        this.index = Integer.parseInt(data[0]);
+        this.timestamp = Long.parseLong(data[1]);
+        this.data = data[2];
+        this.previousHash = data[3];
+        this.hash = data[4];
+        this.nonce = Integer.parseInt(data[5]);
+    }
+
     public int getIndex() {
         return index;
     }
@@ -69,6 +78,22 @@ public class Block {
             s += "0";
         }
         return s;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
+    public Integer getNonce() {
+        return nonce;
+    }
+
+    public void setNonce(Integer nonce) {
+        this.nonce = nonce;
     }
 
     public void mineBlock(int difficulty) {

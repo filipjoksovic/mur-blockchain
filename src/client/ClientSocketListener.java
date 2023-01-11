@@ -1,5 +1,7 @@
 package client;
 
+import blockchain.Block;
+import blockchain.BlockUtils;
 import console.Level;
 import console.Logger;
 
@@ -9,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 
 public class ClientSocketListener extends Thread {
 
@@ -21,6 +24,7 @@ public class ClientSocketListener extends Thread {
     ObjectInputStream socketInputStream;
     ObjectOutputStream socketOutputStream;
     private static final Logger logger = new Logger(ClientSocketListener.class.getName());
+    BlockUtils blockUtilsInstance;
 
     public ClientSocketListener(int port, Main appInstance, int parentPort) throws IOException {
         connectionID = UUID.randomUUID();
@@ -28,6 +32,8 @@ public class ClientSocketListener extends Thread {
         this.port = port;
         this.parentPort = parentPort;
         this.appInstance = appInstance;
+
+        logger.log(Level.IDIOT, "Creating new socket/connection");
 
         socketOutputStream = new ObjectOutputStream(this.socket.getOutputStream());
 
@@ -61,6 +67,7 @@ public class ClientSocketListener extends Thread {
             String response = (String) socketInputStream.readObject();
             logger.log("Message received");
             appInstance.serverResponsesTextArea.append(response + "\n");
+            String[] blockData = response.split("//");
             String[] possiblePortData = response.split("@");
             if (possiblePortData.length > 0) {
                 int counter = 0;
@@ -78,20 +85,21 @@ public class ClientSocketListener extends Thread {
                 }
                 appInstance.setPossiblePortsLabel("Available ports: \n" + availablePortsLabelText.toString());
             }
+
+
             logger.log("Attempting to read response");
             logger.log(Level.SUCCESS, "Response received: " + response);
-
 
         } catch (Exception e) {
             logger.log(Level.CRITICAL, "Error reading response");
             e.printStackTrace();
         }
-        try {
-            logger.log("Attempting to close streams");
-
-        } catch (Exception e) {
-            logger.log(Level.CRITICAL, "Error closing streams");
-        }
+//        try {
+//            logger.log("Attempting to close streams");
+//
+//        } catch (Exception e) {
+//            logger.log(Level.CRITICAL, "Error closing streams");
+//        }
     }
 
 }

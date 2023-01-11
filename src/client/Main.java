@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
+import blockchain.BlockMinerThread;
 import console.Level;
 import console.Logger;
 import org.apache.log4j.BasicConfigurator;
@@ -15,17 +16,19 @@ public class Main {
     int posX = 0;
     int posY = 0;
     int width = 500;
-    int height = 800;
+    int height = 950;
     int padding = 10;
     int componentWidth = width - 4 * padding;
     int componentHeight = 30;
 
-    ServerSocketHandler serverSocketHandler;
-    ClientSocketHandler clientSocketHandler;
+    ClientSocketHandler csh;
+
+    ServerSocketHandler sch;
 
     JFrame frame;
     JButton serverSocketButton;
     JButton clientSocketButton;
+    JButton mineBlockchainButton;
     JLabel serverSocketStatus;
     JLabel clientSocketStatus;
     JLabel numConnections;
@@ -36,6 +39,10 @@ public class Main {
 
     JTextArea serverMessagesTextArea;
     JTextArea serverResponsesTextArea;
+
+    JTextArea blockChainData;
+    JScrollPane sbrBlockchain;
+
     private static Logger logger = new Logger(Main.class.getName());
 
     Main(int posX, int posY) {
@@ -58,6 +65,8 @@ public class Main {
         initBounds();
         addComponents();
 
+        serverSocketButton.doClick();
+//        clientSocketButton.doClick();
 
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.repaint();
@@ -66,9 +75,12 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        Main main = new Main(0, 0);
-//        Main main2 = new Main(main.posX + main.width + main.padding, 0);
-//        Main main3 = new Main(main2.posX + main2.width + main2.padding, 0);
+        Main main = new Main(10, 200);
+//        Main main2 = new Main(main.posX + main.width + main.padding, 200);
+//        Main main3 = new Main(main2.posX + main2.width + main2.padding, 200);
+//        Main main4 = new Main(main3.posX + main2.width + main2.padding, 200);
+//        Main main5 = new Main(main4.posX + main2.width + main2.padding, 200);
+//        Main main6 = new Main(main5.posX + main2.width + main2.padding, 200);
 
         BasicConfigurator.configure();
 
@@ -78,7 +90,7 @@ public class Main {
         if (serverSocketStatus == null) {
             serverSocketStatus = new JLabel("Server socket status: Off");
         } else {
-            serverSocketStatus.setText("Server socket status: On ::" + serverSocketHandler.port);
+            serverSocketStatus.setText("Server socket status: On ::" + sch.port);
         }
     }
 
@@ -108,10 +120,10 @@ public class Main {
         serverSocketButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (serverSocketHandler == null) {
-                    serverSocketHandler = new ServerSocketHandler(9090, appInstance);
-                    serverSocketHandler.start();
-                    logger.log(Level.CRITICAL, String.valueOf(serverSocketHandler.port));
+                if (sch == null) {
+                    sch = new ServerSocketHandler(9090, appInstance);
+                    sch.start();
+                    logger.log(Level.CRITICAL, String.valueOf(sch.port));
                 } else {
                     logger.log("Server socket is already " + "initialized");
 
@@ -122,16 +134,16 @@ public class Main {
         clientSocketButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (clientSocketHandler == null) {
-                    if (serverSocketHandler == null) {
+                if (csh == null) {
+                    if (sch == null) {
                         logger.log(Level.ERROR, "Client socket cannot initialize before server socket is initialized.");
                         return;
                     }
 
-                    clientSocketHandler = new ClientSocketHandler(9090, appInstance, serverSocketHandler.port);
-                    clientSocketHandler.start();
+                    csh = new ClientSocketHandler(9090, appInstance, sch.port);
+                    csh.start();
 
-                    logger.log(Level.DEBUG, "Server instance port: " + serverSocketHandler.port);
+                    logger.log(Level.DEBUG, "Server instance port: " + sch.port);
                 } else {
                     logger.log("Client socket is already initialized");
                 }
@@ -141,15 +153,25 @@ public class Main {
         clientMessageSendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (clientSocketHandler == null) {
+                if (csh == null) {
                     logger.log(Level.ERROR, "Client socket not started yet. Start client socket and then try again.");
                 } else {
                     logger.log("Sending message to server");
-                    //clientSocketHandler.sendMessageToServer(clientMessageInput.getText());
+                    csh.sendMessageToServers(clientMessageInput.getText());
                     logger.log("Message sent to server");
 
                 }
             }
+        });
+
+        mineBlockchainButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+//                BlockMinerThread bmt = new BlockMinerThread();
+//                bmt.start();
+                csh.startMiningBlockchain();
+            }
+
         });
     }
 
@@ -162,7 +184,9 @@ public class Main {
         clientMessageInput.setBounds(padding, clientSocketButton.getY() + clientSocketButton.getHeight() + padding, (int) (componentWidth * 0.7) - padding, componentHeight);
         clientMessageSendButton.setBounds(clientMessageInput.getX() + clientMessageInput.getWidth() + padding, clientSocketButton.getY() + clientSocketButton.getHeight() + padding, (int) (componentWidth * 0.3), componentHeight);
         serverMessagesTextArea.setBounds(padding, clientMessageInput.getY() + clientMessageInput.getHeight() + padding, componentWidth, componentHeight * 10);
-        serverResponsesTextArea.setBounds(padding, serverMessagesTextArea.getY() + serverMessagesTextArea.getHeight() + padding, componentWidth, componentHeight * 10);
+        mineBlockchainButton.setBounds(padding, serverMessagesTextArea.getY() + serverMessagesTextArea.getHeight() + padding, componentWidth, componentHeight);
+
+        sbrBlockchain.setBounds(padding, mineBlockchainButton.getY() + mineBlockchainButton.getHeight() + padding, componentWidth, componentHeight * 10);
 
         portsAvailable.setBounds(padding, serverResponsesTextArea.getY() + serverResponsesTextArea.getHeight() + padding, componentWidth, componentHeight * 10);
     }
@@ -177,12 +201,15 @@ public class Main {
         frame.add(clientMessageSendButton);
         frame.add(serverMessagesTextArea);
         frame.add(portsAvailable);
-        frame.add(serverResponsesTextArea);
+        frame.add(mineBlockchainButton);
+//        frame.add(serverResponsesTextArea);
+        frame.add(sbrBlockchain);
     }
 
     public void initComponents() {
         serverSocketButton = new JButton("Start server");
         clientSocketButton = new JButton("Start client socket");
+        mineBlockchainButton = new JButton("Start mining blockchain");
         serverSocketStatus = new JLabel("Server socket status: Off");
         clientSocketStatus = new JLabel("Client socket status: OFF");
         numConnections = new JLabel("To see the number of connections turn on server mode first");
@@ -193,7 +220,11 @@ public class Main {
 
         serverMessagesTextArea = new JTextArea();
         serverResponsesTextArea = new JTextArea();
+        blockChainData = new JTextArea();
 
+        sbrBlockchain = new JScrollPane(blockChainData);
+        sbrBlockchain.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     }
+
 
 }

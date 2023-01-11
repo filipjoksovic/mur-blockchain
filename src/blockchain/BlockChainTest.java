@@ -15,7 +15,7 @@ public class BlockChainTest {
                 System.out.println("[ERROR]: Blockchain not valid.");
                 return;
             }
-            System.out.println("Number of blocks: " + blockUtils.getBlockChain().size());
+            System.out.println("[INFO]: Number of blocks: " + blockUtils.getBlockChain().size());
 
         }
 

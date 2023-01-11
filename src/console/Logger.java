@@ -32,6 +32,12 @@ public class Logger {
         } else if (level == Level.DEBUG) {
             System.out.println(ConsoleColor.BLUE_BOLD + "(" + className + ") " + ConsoleColor.YELLOW_BOLD_BRIGHT + "[" + Level.SUCCESS.name() + "]" + " {" + LocalDateTime.now() + "} - " + message + " " + Thread.currentThread().getStackTrace()[2].getLineNumber() + ConsoleColor.RESET);
 
+        } else if (level == Level.IDIOT) {
+            System.out.println(ConsoleColor.BLUE_BOLD + "(" + className + ") " + ConsoleColor.PURPLE_BACKGROUND_BRIGHT + "[" + Level.IDIOT.name() + "]" + " {" + LocalDateTime.now() + "} - " + message + " " + Thread.currentThread().getStackTrace()[2].getLineNumber() + ConsoleColor.RESET);
+
+        } else if (level == Level.WARNING) {
+            System.out.println(ConsoleColor.BLUE_BOLD + "(" + className + ") " + ConsoleColor.YELLOW_BACKGROUND + "[" + Level.WARNING.name() + "]" + " {" + LocalDateTime.now() + "} - " + message + " " + Thread.currentThread().getStackTrace()[2].getLineNumber() + ConsoleColor.RESET);
+
         }
     }
 }

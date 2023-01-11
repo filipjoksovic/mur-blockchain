@@ -47,15 +47,15 @@ public class ServerSocketListener extends Thread {
                 logger.log("Waiting for connection");
                 logger.log(Level.SUCCESS, "Client connected");
                 String message = (String) serverInputStream.readObject(); //read request from client (either could be a message, or a UUID#PORT format)
-                if (connection_id == null) { //client has not yet identified itself, handle it
-                    try {
-                        establishClientConnection(message);
-                    } catch (Exception e) {
-                        logger.log(Level.CRITICAL, "Error occured when identifying client");
-                        e.printStackTrace();
-                        break;
-                    }
-                }
+//                if (connection_id == null) { //client has not yet identified itself, handle it
+//                    try {
+//                        establishClientConnection(message);
+//                    } catch (Exception e) {
+//                        logger.log(Level.CRITICAL, "Error occured when identifying client");
+//                        e.printStackTrace();
+//                        break;
+//                    }
+//                }
                 if (message.equalsIgnoreCase("quit")) {
                     try {
                         closeConnection();
@@ -71,7 +71,9 @@ public class ServerSocketListener extends Thread {
 
                 serverOutputStream.writeObject(getPortsAsString());
                 logger.log(Level.SUCCESS, "Response sent");
-
+//                serverOutputStream.close();
+//                serverOutputStream.flush();
+//                serverInputStream.close();
 
             } catch (Exception e) {
                 logger.log("Client disconnected");

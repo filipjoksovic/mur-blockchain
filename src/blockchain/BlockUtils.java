@@ -1,11 +1,11 @@
 package blockchain;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 public class BlockUtils {
 
-    private List<Block> blockChain = new ArrayList<>();
+    private static List<Block> blockChain = new Vector<>();
     private int difficulty = 3;
     private int generationPeriod = 10000; //after interval, new block is
     // expected
@@ -31,7 +31,7 @@ public class BlockUtils {
         return blockChain.get(blockChain.size() - 1);
     }
 
-    public void addBlock(String data) {
+    public Block addBlock(String data) {
         Block previousBlock = this.getLatestBlock();
 
 
@@ -54,7 +54,15 @@ public class BlockUtils {
             }
         }
         newBlock.mineBlock(this.difficulty);
-        blockChain.add(newBlock);
+        if (newBlock.getTimestamp() <= (System.currentTimeMillis() - 60000) || newBlock.getTimestamp() >= previousBlock.getTimestamp() - 60000) {
+            System.out.println("BLOCK VALID BLOCK VALID BLOCK VALID");
+            blockChain.add(newBlock);
+            System.out.println("Blockchain size: " + blockChain.size());
+            return newBlock;
+        } else {
+            System.out.println("[INFO]:Block not valid");
+            return null;
+        }
     }
 
     public boolean validateChain() {
@@ -69,6 +77,14 @@ public class BlockUtils {
             }
         }
         return true;
+    }
+
+    public int calculateCumulativeDifficulty() {
+        int sum = 0;
+        for (Block block : blockChain) {
+            sum += Math.pow(2, difficulty);
+        }
+        return sum;
     }
 
     public int getDifficulty() {

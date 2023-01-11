@@ -1,5 +1,6 @@
 package client;
 
+import blockchain.BlockUtils;
 import console.ConsoleColor;
 import console.Level;
 import console.Logger;
@@ -7,13 +8,11 @@ import console.Logger;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 public class ServerSocketHandler implements Runnable {
 
-    List<ServerSocketListener> connections;
     List<Integer> availablePorts;
     Thread serverThread;
     ServerSocket serverSocket;
@@ -24,12 +23,14 @@ public class ServerSocketHandler implements Runnable {
 
     Main appInstance;
 
+    BlockUtils blockUtils = new BlockUtils();
+
+
     private static Logger logger = new Logger(ServerSocketHandler.class.getName());
 
     public ServerSocketHandler(int port, Main appInstance) {
         this.port = port;
         this.appInstance = appInstance;
-        connections = new Vector<>();
         availablePorts = new Vector<>();
 
     }
@@ -56,9 +57,8 @@ public class ServerSocketHandler implements Runnable {
             logger.log("Starting listener thread");
             ServerSocketListener serverSocketListener = new ServerSocketListener(clientSocket, appInstance, availablePorts);
             logger.log(Level.SUCCESS, "Listener thread connected");
-            connections.add(serverSocketListener);
             serverSocketListener.start();
-            System.out.println("Number of connnections: " + connections.size());
+//            System.out.println("Number of connnections: " + connections.size());
         }
     }
 
@@ -96,4 +96,6 @@ public class ServerSocketHandler implements Runnable {
             return s.toString();
         }
     }
+
+
 }
