@@ -1,6 +1,7 @@
 package client;
 
 import blockchain.BlockMinerThread;
+import blockchain.BlockUtils;
 import console.ConsoleColor;
 import console.Level;
 import console.Logger;
@@ -25,16 +26,18 @@ public class ClientSocketHandler {
     Main appInstance;
     int instancePort;
     UUID connection_id;
+    BlockUtils blockUtils;
 
     private static final Logger logger = new Logger(ClientSocketHandler.class.getName());
 
-    public ClientSocketHandler(int serverPort, Main appInstance, int instancePort) {
+    public ClientSocketHandler(int serverPort, Main appInstance, int instancePort, BlockUtils blockUtils) {
         this.serverPort = serverPort;
         this.appInstance = appInstance;
         this.instancePort = instancePort;
         this.clientSockets = new Vector<>();
         this.knownPorts = new Vector<>(List.of(9090, 9091, 9092, 9093, 9094, 9095, 9096, 9097, 9078, 9099));
         this.availableConnections = new Vector<>();
+        this.blockUtils = blockUtils;
     }
 
     public void start() {

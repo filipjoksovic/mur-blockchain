@@ -1,5 +1,7 @@
 package client;
 
+import blockchain.Block;
+import blockchain.BlockUtils;
 import console.Level;
 import console.Logger;
 
@@ -22,10 +24,13 @@ public class ServerSocketListener extends Thread {
     ObjectOutputStream serverOutputStream = null;
     List<Integer> availablePorts;
 
-    public ServerSocketListener(Socket socket, Main appInstance, List<Integer> availablePorts) {
+    BlockUtils blockUtils;
+
+    public ServerSocketListener(Socket socket, Main appInstance, List<Integer> availablePorts, BlockUtils blockUtils) {
         this.socket = socket;
         this.appInstance = appInstance;
         this.availablePorts = availablePorts;
+        this.blockUtils = blockUtils;
     }
 
     private static final Logger logger = new Logger(ServerSocketListener.class.getName());
@@ -46,16 +51,7 @@ public class ServerSocketListener extends Thread {
             try {
                 logger.log("Waiting for connection");
                 logger.log(Level.SUCCESS, "Client connected");
-                String message = (String) serverInputStream.readObject(); //read request from client (either could be a message, or a UUID#PORT format)
-//                if (connection_id == null) { //client has not yet identified itself, handle it
-//                    try {
-//                        establishClientConnection(message);
-//                    } catch (Exception e) {
-//                        logger.log(Level.CRITICAL, "Error occured when identifying client");
-//                        e.printStackTrace();
-//                        break;
-//                    }
-//                }
+                String message = (String) serverInputStream.readObject();
                 if (message.equalsIgnoreCase("quit")) {
                     try {
                         closeConnection();
@@ -68,12 +64,21 @@ public class ServerSocketListener extends Thread {
                 logger.log("Server socket received message from client: " + message);
                 appInstance.addTextToServerMessageTextArea(message);
 
+                String[] possibleBlock = message.split("//");
+                if (possibleBlock.length == 7) {
+                    Block newBlock = new Block(possibleBlock);
+                    logger.log(Level.IDIOT, "New block found");
+                    BlockUtils.inMemBlockChain.add(newBlock);
+                    if (blockUtils.validateInMemChain()) {
+                        logger.log(Level.SUCCESS, "Blockchain still valid somehow");
+                    } else {
+                        logger.log(Level.CRITICAL, "Blockchain not valid");
+                        break;
+                    }
+                }
 
                 serverOutputStream.writeObject(getPortsAsString());
                 logger.log(Level.SUCCESS, "Response sent");
-//                serverOutputStream.close();
-//                serverOutputStream.flush();
-//                serverInputStream.close();
 
             } catch (Exception e) {
                 logger.log("Client disconnected");

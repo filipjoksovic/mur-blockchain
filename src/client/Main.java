@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 import blockchain.BlockMinerThread;
+import blockchain.BlockUtils;
 import console.Level;
 import console.Logger;
 import org.apache.log4j.BasicConfigurator;
@@ -22,8 +23,9 @@ public class Main {
     int componentHeight = 30;
 
     ClientSocketHandler csh;
-
     ServerSocketHandler sch;
+
+    BlockUtils blockUtils;
 
     JFrame frame;
     JButton serverSocketButton;
@@ -43,9 +45,12 @@ public class Main {
     JTextArea blockChainData;
     JScrollPane sbrBlockchain;
 
+    JScrollPane sbrServerMessages;
+
     private static Logger logger = new Logger(Main.class.getName());
 
     Main(int posX, int posY) {
+        blockUtils = new BlockUtils();
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (Exception ignored) {
@@ -121,7 +126,7 @@ public class Main {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (sch == null) {
-                    sch = new ServerSocketHandler(9090, appInstance);
+                    sch = new ServerSocketHandler(9090, appInstance, blockUtils);
                     sch.start();
                     logger.log(Level.CRITICAL, String.valueOf(sch.port));
                 } else {
@@ -140,7 +145,7 @@ public class Main {
                         return;
                     }
 
-                    csh = new ClientSocketHandler(9090, appInstance, sch.port);
+                    csh = new ClientSocketHandler(9090, appInstance, sch.port, blockUtils);
                     csh.start();
 
                     logger.log(Level.DEBUG, "Server instance port: " + sch.port);
@@ -157,7 +162,14 @@ public class Main {
                     logger.log(Level.ERROR, "Client socket not started yet. Start client socket and then try again.");
                 } else {
                     logger.log("Sending message to server");
-                    csh.sendMessageToServers(clientMessageInput.getText());
+                    for (int i = 0; i < 1000; i++) {
+                        csh.sendMessageToServers(clientMessageInput.getText());
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
                     logger.log("Message sent to server");
 
                 }
@@ -183,8 +195,8 @@ public class Main {
         clientSocketButton.setBounds(serverSocketButton.getX() + serverSocketButton.getWidth() + padding, numConnections.getY() + numConnections.getHeight() + padding, componentWidth / 2 - padding, componentHeight);
         clientMessageInput.setBounds(padding, clientSocketButton.getY() + clientSocketButton.getHeight() + padding, (int) (componentWidth * 0.7) - padding, componentHeight);
         clientMessageSendButton.setBounds(clientMessageInput.getX() + clientMessageInput.getWidth() + padding, clientSocketButton.getY() + clientSocketButton.getHeight() + padding, (int) (componentWidth * 0.3), componentHeight);
-        serverMessagesTextArea.setBounds(padding, clientMessageInput.getY() + clientMessageInput.getHeight() + padding, componentWidth, componentHeight * 10);
-        mineBlockchainButton.setBounds(padding, serverMessagesTextArea.getY() + serverMessagesTextArea.getHeight() + padding, componentWidth, componentHeight);
+        sbrServerMessages.setBounds(padding, clientMessageSendButton.getY() + clientMessageInput.getHeight() + padding, componentWidth, componentHeight * 10);
+        mineBlockchainButton.setBounds(padding, sbrServerMessages.getY() + sbrServerMessages.getHeight() + padding, componentWidth, componentHeight);
 
         sbrBlockchain.setBounds(padding, mineBlockchainButton.getY() + mineBlockchainButton.getHeight() + padding, componentWidth, componentHeight * 10);
 
@@ -199,7 +211,8 @@ public class Main {
         frame.add(clientSocketButton);
         frame.add(clientMessageInput);
         frame.add(clientMessageSendButton);
-        frame.add(serverMessagesTextArea);
+//        frame.add(serverMessagesTextArea);
+        frame.add(sbrServerMessages);
         frame.add(portsAvailable);
         frame.add(mineBlockchainButton);
 //        frame.add(serverResponsesTextArea);
@@ -219,6 +232,8 @@ public class Main {
         clientMessageSendButton = new JButton("Send message");
 
         serverMessagesTextArea = new JTextArea();
+        sbrServerMessages = new JScrollPane(serverMessagesTextArea);
+        sbrServerMessages.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         serverResponsesTextArea = new JTextArea();
         blockChainData = new JTextArea();
 

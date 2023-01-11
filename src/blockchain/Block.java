@@ -12,6 +12,8 @@ public class Block {
 
     private Integer nonce;
 
+    private Integer difficulty;
+
     public Block(int index, String previousHash, String data) {
         this.index = index;
         this.timestamp = System.currentTimeMillis();
@@ -28,6 +30,7 @@ public class Block {
         this.previousHash = data[3];
         this.hash = data[4];
         this.nonce = Integer.parseInt(data[5]);
+        this.difficulty = Integer.parseInt(data[6]);
     }
 
     public int getIndex() {

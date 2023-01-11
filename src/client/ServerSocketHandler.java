@@ -21,17 +21,18 @@ public class ServerSocketHandler implements Runnable {
     List<Integer> knownPorts;
     int port;
 
-    Main appInstance;
+    BlockUtils blockUtils;
 
-    BlockUtils blockUtils = new BlockUtils();
+    Main appInstance;
 
 
     private static Logger logger = new Logger(ServerSocketHandler.class.getName());
 
-    public ServerSocketHandler(int port, Main appInstance) {
+    public ServerSocketHandler(int port, Main appInstance, BlockUtils blockUtils) {
         this.port = port;
         this.appInstance = appInstance;
         availablePorts = new Vector<>();
+        this.blockUtils = blockUtils;
 
     }
 
@@ -55,10 +56,9 @@ public class ServerSocketHandler implements Runnable {
         while (true) {
             Socket clientSocket = serverSocket.accept();
             logger.log("Starting listener thread");
-            ServerSocketListener serverSocketListener = new ServerSocketListener(clientSocket, appInstance, availablePorts);
+            ServerSocketListener serverSocketListener = new ServerSocketListener(clientSocket, appInstance, availablePorts,blockUtils);
             logger.log(Level.SUCCESS, "Listener thread connected");
             serverSocketListener.start();
-//            System.out.println("Number of connnections: " + connections.size());
         }
     }
 

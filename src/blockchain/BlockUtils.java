@@ -6,6 +6,7 @@ import java.util.Vector;
 public class BlockUtils {
 
     private static List<Block> blockChain = new Vector<>();
+    public static List<Block> inMemBlockChain = new Vector<>();
     private int difficulty = 3;
     private int generationPeriod = 10000; //after interval, new block is
     // expected
@@ -79,6 +80,20 @@ public class BlockUtils {
         return true;
     }
 
+    public boolean validateInMemChain() {
+        for (int i = 1; i < inMemBlockChain.size(); i++) {
+            Block current = inMemBlockChain.get(i);
+            Block previous = inMemBlockChain.get(i - 1);
+            if (!current.getHash().equals(current.calculateHash())) {
+                return false;
+            }
+            if (!current.getPreviousHash().equals(previous.calculateHash())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public int calculateCumulativeDifficulty() {
         int sum = 0;
         for (Block block : blockChain) {
@@ -101,5 +116,21 @@ public class BlockUtils {
 
     public int getGenerationPeriod() {
         return generationPeriod;
+    }
+
+    public String serializeBlockchain() {
+        StringBuilder serializedBC = new StringBuilder();
+        serializedBC.append(difficulty).append("??");
+        for (int i = 0; i < blockChain.size(); i++) {
+            serializedBC.append(BlockUtils.serializeBlock(blockChain.get(i), this.getDifficulty()));
+            if (i != blockChain.size() - 1) {
+                serializedBC.append("??");
+            }
+        }
+        return serializedBC.toString();
+    }
+
+    public static String serializeBlock(Block block, int difficulty) {
+        return block.getIndex() + "//" + block.getTimestamp() + "//" + block.getData() + "//" + block.getPreviousHash() + "//" + block.getHash() + "//" + block.getNonce() + "//" + difficulty;
     }
 }

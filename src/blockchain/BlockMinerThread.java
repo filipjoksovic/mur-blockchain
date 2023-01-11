@@ -23,16 +23,18 @@ public class BlockMinerThread extends Thread {
 
     public void run() {
         synchronized (this) {
-            Block minedBlock = blockUtils.addBlock(String.valueOf(random.nextInt(5000)));
-            if (blockUtils.validateChain()) {
-                System.out.println("[INFO]: Blockchain still valid.");
-                System.out.println("[INFO]: Cummulative difficulty: " + blockUtils.calculateCumulativeDifficulty());
-                csh.sendMessageToServers(serializeBlock(minedBlock));
-            } else {
-                System.out.println("[ERROR]: Blockchain not valid.");
-                return;
+            while (true) {
+                Block minedBlock = blockUtils.addBlock(String.valueOf(random.nextInt(5000)));
+                if (blockUtils.validateChain()) {
+                    System.out.println("[INFO]: Blockchain still valid.");
+                    System.out.println("[INFO]: Cummulative difficulty: " + blockUtils.calculateCumulativeDifficulty());
+                    csh.sendMessageToServers(blockUtils.serializeBlockchain());
+                } else {
+                    System.out.println("[ERROR]: Blockchain not valid.");
+                    return;
+                }
+                System.out.println("[INFO] Number of blocks: " + blockUtils.getBlockChain().size());
             }
-            System.out.println("[INFO] Number of blocks: " + blockUtils.getBlockChain().size());
         }
     }
 
